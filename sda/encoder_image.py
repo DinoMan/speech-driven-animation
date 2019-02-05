@@ -2,7 +2,6 @@ import numpy as np
 import torch.nn as nn
 import utils
 
-
 class Encoder(nn.Module):
     def __init__(self, code_size, img_size, kernel_size=4, num_input_channels=3, num_feature_maps=64, batch_norm=True):
         super(Encoder, self).__init__()
@@ -62,8 +61,6 @@ class Encoder(nn.Module):
         self.cl.append(nn.Sequential(
             nn.Conv2d(self.channels[-1], code_size, self.final_size, stride=1, padding=0, bias=False),
             nn.Tanh()))
-
-        utils.initialize_weights(self, [0.0, 0.02])
 
     def forward(self, x, retain_intermediate=False):
         if retain_intermediate:

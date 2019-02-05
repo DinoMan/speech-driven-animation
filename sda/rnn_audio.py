@@ -1,5 +1,4 @@
 import torch.nn as nn
-import utils
 import encoder_audio
 
 class RNN(nn.Module):
@@ -12,8 +11,6 @@ class RNN(nn.Module):
         self.encoder = encoder_audio.Encoder(self.enc_code_size, rate, feat_length, init_kernel=init_kernel,
                                              init_stride=init_stride)
         self.rnn = nn.GRU(self.enc_code_size, self.rnn_code_size, n_layers, batch_first=True)
-
-        utils.initialize_weights(self.rnn)
 
     def forward(self, x, lengths):
         seq_length = x.size()[1]

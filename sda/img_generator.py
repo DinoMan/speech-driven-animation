@@ -131,9 +131,6 @@ class Generator(nn.Module):
                                            stride=stride, padding=padding // 2, bias=False))
         self.final_activation = nn.Tanh()
 
-        # Initialise the weights for the network with gaussians with 0 mean and 0.02 std. dev
-        utils.initialize_weights(self, [0.0, 0.02])
-
     def forward(self, x, c=None, aux=None, skip=[]):
         if aux is not None:
             if self.rnn_noise is not None:

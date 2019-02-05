@@ -1,15 +1,14 @@
 from setuptools import setup
 
-setup(name='bulletin',
+setup(name='sda',
       version='0.1',
-      description='helper library for posting to webserver',
-      packages=['bulletin'],
-      package_dir={'bulletin': 'bulletin'},
+      description='Produces speech-driven faces',
+      packages=['sda'],
+      package_dir={'sda': 'sda'},
+      package_data={'sda': ['data/*.npy']},
       install_requires=[
-          'matplotlib',
-          'menpo',
-          'scipy',
-          'numpy'
+          'face_alignment',
+          'numpy',
+          'scipy'
       ],
       zip_safe=False)
-
