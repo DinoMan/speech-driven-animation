@@ -145,15 +145,18 @@ class VideoAnimator():
 
         if isinstance(audio, str):  # if we have a path then grab the image
             speech, audio_rate = torchaudio.load(audio, channels_first=False)
+            if speech.size(1) != 1:
+                speech = speech[:, 0].view(-1, 1)
         else:
             if fs is None:
                 raise AttributeError("Audio provided without specifying the rate. Specify rate or use audio file!")
             seq_length = audio.shape[0]
-            max_value = np.iinfo(img.dtype).max
-            speech = torch.from_numpy(2 * signal.resample(audio, seq_length * self.audio_rate / fs) / max_value).float()
+            max_value = np.iinfo(audio.dtype).max
+            speech = torch.from_numpy(
+                2 * signal.resample(audio, int(seq_length * self.audio_rate / fs)) / max_value).float()
+            speech = speech.view(-1, 1)
 
         frame = self.img_transform(frame).to(self.device)
-        speech = speech
 
         cutting_stride = int(self.audio_rate / self.video_rate)
         audio_seq_padding = self.audio_feat_samples - cutting_stride

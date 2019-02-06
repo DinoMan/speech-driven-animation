@@ -7,8 +7,9 @@ setup(name='sda',
       package_dir={'sda': 'sda'},
       package_data={'sda': ['data/*.dat']},
       install_requires=[
-          'face_alignment',
           'numpy',
-          'scipy'
+          'scipy',
+          'scikit-video',
+          'ffmpeg-python',
       ],
       zip_safe=False)
