@@ -2,7 +2,7 @@
 
 This library implements the end-to-end facial synthesis model described in this [paper](https://sites.google.com/view/facialsynthesis/home).
 
-![speech-driven-animation](example.jpg)
+![speech-driven-animation](example.gif)
 
 ## Installing
 
@@ -36,5 +36,5 @@ vid, aud = va(frame, audio_clip, fs=fs)
 
 ### Saving video with audio
 ```
-va.save_video(vid, aud, "/home/SERILOCAL/k.vougioukas/jfk.mp4")
+va.save_video(vid, aud, "generated.mp4")
 ```
