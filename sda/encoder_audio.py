@@ -1,6 +1,6 @@
 import torch.nn as nn
 import math
-import utils
+from .utils import calculate_padding, prime_factors, calculate_output_size
 
 class Encoder(nn.Module):
     def __init__(self, code_size, rate, feat_length, init_kernel=None, init_stride=None, num_feature_maps=16,
@@ -14,16 +14,16 @@ class Encoder(nn.Module):
         self.kernels = []
 
         features = feat_length * rate
-        strides = utils.prime_factors(features)
+        strides = prime_factors(features)
         kernels = [2 * s for s in strides]
 
         if init_kernel is not None and init_stride is not None:
             self.strides.append(int(init_stride * rate))
             self.kernels.append(int(init_kernel * rate))
-            padding = utils.calculate_padding(init_kernel * rate, stride=init_stride * rate, in_size=features)
-            init_features = utils.calculate_output_size(features, init_kernel * rate, stride=init_stride * rate,
+            padding = calculate_padding(init_kernel * rate, stride=init_stride * rate, in_size=features)
+            init_features = calculate_output_size(features, init_kernel * rate, stride=init_stride * rate,
                                                         padding=padding)
-            strides = utils.prime_factors(init_features)
+            strides = prime_factors(init_features)
             kernels = [2 * s for s in strides]
 
         if not increasing_stride:
@@ -34,8 +34,8 @@ class Encoder(nn.Module):
         self.kernels.extend(kernels)
 
         for i in range(len(self.strides) - 1):
-            padding = utils.calculate_padding(self.kernels[i], stride=self.strides[i], in_size=features)
-            features = utils.calculate_output_size(features, self.kernels[i], stride=self.strides[i], padding=padding)
+            padding = calculate_padding(self.kernels[i], stride=self.strides[i], in_size=features)
+            features = calculate_output_size(features, self.kernels[i], stride=self.strides[i], padding=padding)
             pad = int(math.ceil(padding / 2.0))
 
             if i == 0:

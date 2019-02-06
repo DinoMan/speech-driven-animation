@@ -1,14 +1,14 @@
 import numpy as np
 import torch.nn as nn
 import torch
-import utils
+from .utils import calculate_padding
 
 
 class Deconv(nn.Module):
     def __init__(self, in_channels, out_channels, in_size, kernel_size, stride=1, batch_norm=True):
         super(Deconv, self).__init__()
         # This ensures that we have same padding no matter if we have even or odd kernels
-        padding = utils.calculate_padding(kernel_size, stride)
+        padding = calculate_padding(kernel_size, stride)
         self.dcl = nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride=stride, padding=padding // 2,
                                       bias=False)
 
@@ -31,7 +31,7 @@ class UnetBlock(nn.Module):
     def __init__(self, in_channels, out_channels, skip_channels, in_size, kernel_size, stride=1, batch_norm=True):
         super(UnetBlock, self).__init__()
         # This ensures that we have same padding no matter if we have even or odd kernels
-        padding = utils.calculate_padding(kernel_size, stride)
+        padding = calculate_padding(kernel_size, stride)
         self.dcl1 = nn.ConvTranspose2d(in_channels + skip_channels, in_channels, 3, padding=1, bias=False)
         self.dcl2 = nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride=stride,
                                        padding=padding // 2, bias=False)
@@ -126,7 +126,7 @@ class Generator(nn.Module):
             num_input_channels //= 2
             in_size = tuple(2 * x for x in in_size)
 
-        padding = utils.calculate_padding(kernel_size, stride)
+        padding = calculate_padding(kernel_size, stride)
         self.dcl.append(nn.ConvTranspose2d(num_input_channels, self.num_channels, kernel_size,
                                            stride=stride, padding=padding // 2, bias=False))
         self.final_activation = nn.Tanh()

@@ -5,7 +5,7 @@ setup(name='sda',
       description='Produces speech-driven faces',
       packages=['sda'],
       package_dir={'sda': 'sda'},
-      package_data={'sda': ['data/*.npy']},
+      package_data={'sda': ['data/*.dat']},
       install_requires=[
           'face_alignment',
           'numpy',

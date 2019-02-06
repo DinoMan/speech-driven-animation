@@ -1,9 +1,10 @@
 from torchvision import transforms
 import torch
 import torchaudio
-import encoder_image
-import img_generator
-import rnn_audio
+from .encoder_image import Encoder
+from .img_generator import Generator
+from .rnn_audio import RNN
+
 from scipy import signal
 import numpy as np
 from PIL import Image
@@ -39,7 +40,10 @@ def tempdir():
 
 
 class VideoAnimator():
-    def __init__(self, model_path, gpu=-1):
+    def __init__(self, model_path=None, gpu=-1):
+
+        if model_path is None:
+            model_path = os.path.split(__file__)[0] + "/data/model.dat"
 
         if gpu < 0:
             self.device = torch.device("cpu")
@@ -66,23 +70,29 @@ class VideoAnimator():
 
         self.audio_transform = torchaudio.transforms.Scale()
 
-        self.encoder = rnn_audio.RNN(self.audio_feat_len, self.aud_enc_dim, self.rnn_gen_dim,
-                                     self.audio_rate, init_kernel=0.005, init_stride=0.001)
+        self.encoder = RNN(self.audio_feat_len, self.aud_enc_dim, self.rnn_gen_dim,
+                           self.audio_rate, init_kernel=0.005, init_stride=0.001)
+        self.encoder.to(self.device)
         self.encoder.load_state_dict(model_dict['encoder'])
 
-        self.encoder_id = encoder_image.Encoder(self.id_enc_dim, self.img_size)
+        self.encoder_id = Encoder(self.id_enc_dim, self.img_size)
+        self.encoder_id.to(self.device)
         self.encoder_id.load_state_dict(model_dict['encoder_id'])
 
         skip_channels = list(self.encoder_id.channels)
         skip_channels.reverse()
 
-        self.generator = img_generator.Generator(self.img_size, self.rnn_gen_dim, condition_size=self.id_enc_dim,
-                                                 num_gen_channels=self.encoder_id.channels[-1],
-                                                 skip_channels=skip_channels, aux_size=self.aux_latent,
-                                                 sequential_noise=self.sequential_noise)
+        self.generator = Generator(self.img_size, self.rnn_gen_dim, condition_size=self.id_enc_dim,
+                                   num_gen_channels=self.encoder_id.channels[-1],
+                                   skip_channels=skip_channels, aux_size=self.aux_latent,
+                                   sequential_noise=self.sequential_noise)
 
         self.generator.to(self.device)
         self.generator.load_state_dict(model_dict['generator'])
+
+        self.encoder.eval()
+        self.encoder_id.eval()
+        self.generator.eval()
 
     def save_video(self, video, audio, path):
         with tempdir() as dirpath:
@@ -103,6 +113,7 @@ class VideoAnimator():
 
             out = ffmpeg.output(in1['v'], in2['a'], path, loglevel="panic")
             out.run()
+
     def _cut_sequence_(self, seq, snip_length, cutting_stride, pad_samples):
         if cutting_stride is None:
             cutting_stride = snip_length
@@ -142,13 +153,14 @@ class VideoAnimator():
             speech = torch.from_numpy(2 * signal.resample(audio, seq_length * self.audio_rate / fs) / max_value).float()
 
         frame = self.img_transform(frame).to(self.device)
-        speech = speech.to(self.device)
+        speech = speech
 
         cutting_stride = int(self.audio_rate / self.video_rate)
         audio_seq_padding = self.audio_feat_samples - cutting_stride
 
         # Create new sequences of the audio windows
-        audio_feat_seq = self._cut_sequence_(speech, self.audio_feat_samples, cutting_stride, audio_seq_padding)
+        audio_feat_seq = self._cut_sequence_(speech, self.audio_feat_samples, cutting_stride, audio_seq_padding).to(
+            self.device)
         frame = frame.unsqueeze(0)
         audio_feat_seq = audio_feat_seq.unsqueeze(0)
         audio_feat_seq_length = audio_feat_seq.size()[1]

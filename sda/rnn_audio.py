@@ -1,5 +1,6 @@
 import torch.nn as nn
-import encoder_audio
+from .encoder_audio import Encoder
+
 
 class RNN(nn.Module):
     def __init__(self, feat_length, enc_code_size, rnn_code_size, rate, n_layers=2, init_kernel=None,
@@ -8,8 +9,8 @@ class RNN(nn.Module):
         self.audio_feat_samples = int(rate * feat_length)
         self.enc_code_size = enc_code_size
         self.rnn_code_size = rnn_code_size
-        self.encoder = encoder_audio.Encoder(self.enc_code_size, rate, feat_length, init_kernel=init_kernel,
-                                             init_stride=init_stride)
+        self.encoder = Encoder(self.enc_code_size, rate, feat_length, init_kernel=init_kernel,
+                               init_stride=init_stride)
         self.rnn = nn.GRU(self.enc_code_size, self.rnn_code_size, n_layers, batch_first=True)
 
     def forward(self, x, lengths):

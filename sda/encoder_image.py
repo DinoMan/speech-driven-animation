@@ -1,13 +1,13 @@
 import numpy as np
 import torch.nn as nn
-import utils
+from .utils import calculate_padding, is_power2
 
 class Encoder(nn.Module):
     def __init__(self, code_size, img_size, kernel_size=4, num_input_channels=3, num_feature_maps=64, batch_norm=True):
         super(Encoder, self).__init__()
 
         # Get the dimension which is a power of 2
-        if utils.is_power2(max(img_size)):
+        if is_power2(max(img_size)):
             stable_dim = max(img_size)
         else:
             stable_dim = min(img_size)
@@ -26,7 +26,7 @@ class Encoder(nn.Module):
 
         stride = 2
         # This ensures that we have same padding no matter if we have even or odd kernels
-        padding = utils.calculate_padding(kernel_size, stride)
+        padding = calculate_padding(kernel_size, stride)
 
         if batch_norm:
             self.cl.append(nn.Sequential(
