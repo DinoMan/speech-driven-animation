@@ -1,1 +1,1 @@
-from .sda import VideoAnimator
+from .sda import VideoAnimator, get_audio_feature_extractor

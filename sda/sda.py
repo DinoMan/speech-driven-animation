@@ -39,6 +39,31 @@ def tempdir():
         yield dirpath
 
 
+def get_audio_feature_extractor(model_path=None, gpu=-1):
+    if model_path is None:
+        model_path = os.path.split(__file__)[0] + "/data/model.dat"
+
+    if gpu < 0:
+        device = torch.device("cpu")
+        model_dict = torch.load(model_path, map_location=lambda storage, loc: storage)
+    else:
+        device = torch.device("cuda:" + str(gpu))
+        model_dict = torch.load(model_path, map_location=lambda storage, loc: storage.cuda(gpu))
+
+    audio_rate = model_dict["audio_rate"]
+    audio_feat_len = model_dict['audio_feat_len']
+    rnn_gen_dim = model_dict['rnn_gen_dim']
+    aud_enc_dim = model_dict['aud_enc_dim']
+    video_rate = model_dict["video_rate"]
+
+    encoder = RNN(audio_feat_len, aud_enc_dim, rnn_gen_dim, audio_rate, init_kernel=0.005, init_stride=0.001)
+    encoder.to(device)
+    encoder.load_state_dict(model_dict['encoder'])
+
+    overlap = audio_feat_len - 1.0 / video_rate
+    return encoder, {"rate": audio_rate, "feature length": audio_feat_len, "overlap": overlap}
+
+
 class VideoAnimator():
     def __init__(self, model_path=None, gpu=-1):
 
