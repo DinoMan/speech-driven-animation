@@ -64,6 +64,24 @@ def get_audio_feature_extractor(model_path=None, gpu=-1):
     return encoder, {"rate": audio_rate, "feature length": audio_feat_len, "overlap": overlap}
 
 
+def cut_audio_sequence(seq, feature_length, overlap, rate):
+    snip_length = int(feature_length * rate)
+    cutting_stride = int((feature_length - overlap) * rate)
+    pad_samples = snip_length - cutting_stride
+
+    pad_left = torch.zeros(pad_samples // 2, 1)
+    pad_right = torch.zeros(pad_samples - pad_samples // 2, 1)
+
+    seq = torch.cat((pad_left, seq), 0)
+    seq = torch.cat((seq, pad_right), 0)
+
+    stacked = seq.narrow(0, 0, snip_length).unsqueeze(0)
+    iterations = (seq.size()[0] - snip_length) // cutting_stride + 1
+    for i in range(1, iterations):
+        stacked = torch.cat((stacked, seq.narrow(0, i * cutting_stride, snip_length).unsqueeze(0)))
+    return stacked
+
+
 class VideoAnimator():
     def __init__(self, model_path=None, gpu=-1):
 
@@ -139,21 +157,18 @@ class VideoAnimator():
             out = ffmpeg.output(in1['v'], in2['a'], path, loglevel="panic")
             out.run()
 
-    def _cut_sequence_(self, seq, snip_length, cutting_stride, pad_samples):
-        if cutting_stride is None:
-            cutting_stride = snip_length
-
+    def _cut_sequence_(self, seq, cutting_stride, pad_samples):
         pad_left = torch.zeros(pad_samples // 2, 1)
         pad_right = torch.zeros(pad_samples - pad_samples // 2, 1)
 
         seq = torch.cat((pad_left, seq), 0)
         seq = torch.cat((seq, pad_right), 0)
 
-        stacked = seq.narrow(0, 0, snip_length).unsqueeze(0)
-        iterations = (seq.size()[0] - snip_length) // cutting_stride + 1
+        stacked = seq.narrow(0, 0, self.audio_feat_samples).unsqueeze(0)
+        iterations = (seq.size()[0] - self.audio_feat_samples) // cutting_stride + 1
         for i in range(1, iterations):
-            stacked = torch.cat((stacked, seq.narrow(0, i * cutting_stride, snip_length).unsqueeze(0)))
-        return stacked
+            stacked = torch.cat((stacked, seq.narrow(0, i * cutting_stride, self.audio_feat_samples).unsqueeze(0)))
+        return stacked.to(self.device)
 
     def _broadcast_elements_(self, batch, repeat_no):
         total_tensors = []
@@ -187,8 +202,7 @@ class VideoAnimator():
         audio_seq_padding = self.audio_feat_samples - cutting_stride
 
         # Create new sequences of the audio windows
-        audio_feat_seq = self._cut_sequence_(speech, self.audio_feat_samples, cutting_stride, audio_seq_padding).to(
-            self.device)
+        audio_feat_seq = self._cut_sequence_(speech, cutting_stride, audio_seq_padding)
         frame = frame.unsqueeze(0)
         audio_feat_seq = audio_feat_seq.unsqueeze(0)
         audio_feat_seq_length = audio_feat_seq.size()[1]
