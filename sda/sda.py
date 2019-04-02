@@ -65,12 +65,13 @@ def get_audio_feature_extractor(model_path=None, gpu=-1):
 
 
 def cut_audio_sequence(seq, feature_length, overlap, rate):
+    seq = seq.view(-1, 1)
     snip_length = int(feature_length * rate)
     cutting_stride = int((feature_length - overlap) * rate)
     pad_samples = snip_length - cutting_stride
 
-    pad_left = torch.zeros(pad_samples // 2, 1)
-    pad_right = torch.zeros(pad_samples - pad_samples // 2, 1)
+    pad_left = torch.zeros(pad_samples // 2, 1, device=seq.device)
+    pad_right = torch.zeros(pad_samples - pad_samples // 2, 1, device=seq.device)
 
     seq = torch.cat((pad_left, seq), 0)
     seq = torch.cat((seq, pad_right), 0)
