@@ -155,9 +155,9 @@ class VideoAnimator():
             in1 = ffmpeg.input(dirpath + "/tmp.avi")
             in2 = ffmpeg.input(dirpath + "/tmp.wav")
             if experimental_ffmpeg:
-                out = ffmpeg.output(in1['v'], in2['a'], path, loglevel="panic")
-            else:
                 out = ffmpeg.output(in1['v'], in2['a'], path, strict='-2', loglevel="panic")
+            else:
+                out = ffmpeg.output(in1['v'], in2['a'], path, loglevel="panic")
             out.run()
 
     def _cut_sequence_(self, seq, cutting_stride, pad_samples):
