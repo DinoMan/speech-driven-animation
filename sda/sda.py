@@ -138,7 +138,7 @@ class VideoAnimator():
         self.encoder_id.eval()
         self.generator.eval()
 
-    def save_video(self, video, audio, path):
+    def save_video(self, video, audio, path, experimental_ffmpeg=False):
         with tempdir() as dirpath:
             # Save the video file
             writer = sio.FFmpegWriter(dirpath + "/tmp.avi",
@@ -155,7 +155,7 @@ class VideoAnimator():
             in1 = ffmpeg.input(dirpath + "/tmp.avi")
             in2 = ffmpeg.input(dirpath + "/tmp.wav")
 
-            out = ffmpeg.output(in1['v'], in2['a'], path, loglevel="panic")
+            out = ffmpeg.output(in1['v'], in2['a'], path, strict='-2', loglevel="panic")
             out.run()
 
     def _cut_sequence_(self, seq, cutting_stride, pad_samples):
