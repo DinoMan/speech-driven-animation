@@ -45,7 +45,7 @@ def get_audio_feature_extractor(model_path="grid", gpu=-1):
     if model_path == "grid":
         model_path = os.path.split(__file__)[0] + "/data/grid.dat"
     elif model_path == "timit":
-        model = os.path.split(__file__)[0] + "/data/timit.dat"
+        model_path = os.path.split(__file__)[0] + "/data/timit.dat"
     elif model_path == "crema":
         model_path = os.path.split(__file__)[0] + "/data/crema.dat"
 	
@@ -96,7 +96,7 @@ class VideoAnimator():
         if model_path == "grid":
             model_path = os.path.split(__file__)[0] + "/data/grid.dat"
         elif model_path == "timit":
-            model = os.path.split(__file__)[0] + "/data/timit.dat"
+            model_path = os.path.split(__file__)[0] + "/data/timit.dat"
         elif model_path == "crema":
             model_path = os.path.split(__file__)[0] + "/data/crema.dat"
 
@@ -226,6 +226,8 @@ class VideoAnimator():
                 seq_length = audio.shape[0]
                 speech = torch.from_numpy(signal.resample(audio, int(seq_length * self.audio_rate / fs))).float()
                 speech = speech.view(-1, 1)
+            else:
+                speech = audio.view(-1,1)
         else:
             if fs is None:
                 raise AttributeError("Audio provided without specifying the rate. Specify rate or use audio file!")
@@ -236,6 +238,8 @@ class VideoAnimator():
                 speech = torch.from_numpy(
                     2 * signal.resample(audio, int(seq_length * self.audio_rate / fs)) / max_value).float()
                 speech = speech.view(-1, 1)
+            else:
+                speech = audio.view(-1, 1)
 
         frame = self.img_transform(frame).to(self.device)
 
