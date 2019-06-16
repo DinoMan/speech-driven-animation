@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='sda',
-      version='0.1',
+      version='0.2',
       description='Produces speech-driven faces',
       packages=['sda'],
       package_dir={'sda': 'sda'},
@@ -10,6 +10,8 @@ setup(name='sda',
           'numpy',
           'scipy',
           'scikit-video',
+          'scikit-image',
           'ffmpeg-python',
+          'face-alignment'
       ],
       zip_safe=False)

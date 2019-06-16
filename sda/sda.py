@@ -6,6 +6,7 @@ from .img_generator import Generator
 from .rnn_audio import RNN
 
 from scipy import signal
+from skimage import transform as tf
 import numpy as np
 from PIL import Image
 import contextlib
@@ -15,6 +16,7 @@ import tempfile
 import skvideo.io as sio
 import scipy.io.wavfile as wav
 import ffmpeg
+import face_alignment
 
 
 @contextlib.contextmanager
@@ -39,9 +41,14 @@ def tempdir():
         yield dirpath
 
 
-def get_audio_feature_extractor(model_path=None, gpu=-1):
-    if model_path is None:
-        model_path = os.path.split(__file__)[0] + "/data/model.dat"
+def get_audio_feature_extractor(model_path="grid", gpu=-1):
+    if model_path == "grid":
+        model_path = os.path.split(__file__)[0] + "/data/grid.dat"
+    elif model_path == "timit":
+        model = os.path.split(__file__)[0] + "/data/timit.dat"
+    elif model_path == "crema":
+        model_path = os.path.split(__file__)[0] + "/data/crema.dat"
+	
 
     if gpu < 0:
         device = torch.device("cpu")
@@ -84,18 +91,27 @@ def cut_audio_sequence(seq, feature_length, overlap, rate):
 
 
 class VideoAnimator():
-    def __init__(self, model_path=None, gpu=-1):
+    def __init__(self, model_path="grid", gpu=-1):
 
-        if model_path is None:
-            model_path = os.path.split(__file__)[0] + "/data/model.dat"
+        if model_path == "grid":
+            model_path = os.path.split(__file__)[0] + "/data/grid.dat"
+        elif model_path == "timit":
+            model = os.path.split(__file__)[0] + "/data/timit.dat"
+        elif model_path == "crema":
+            model_path = os.path.split(__file__)[0] + "/data/crema.dat"
 
         if gpu < 0:
             self.device = torch.device("cpu")
             model_dict = torch.load(model_path, map_location=lambda storage, loc: storage)
+            self.fa = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D, device="cpu", flip_input=False)
         else:
             self.device = torch.device("cuda:" + str(gpu))
             model_dict = torch.load(model_path, map_location=lambda storage, loc: storage.cuda(gpu))
+            self.fa = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D, device="cuda:" + str(gpu),
+                                                   flip_input=False)
 
+        self.stablePntsIDs = [33, 36, 39, 42, 45]
+        self.mean_face = model_dict["mean_face"]
         self.img_size = model_dict["img_size"]
         self.audio_rate = model_dict["audio_rate"]
         self.video_rate = model_dict["video_rate"]
@@ -108,6 +124,7 @@ class VideoAnimator():
         self.sequential_noise = model_dict['sequential_noise']
 
         self.img_transform = transforms.Compose([
+            transforms.ToPILImage(),
             transforms.Resize((self.img_size[0], self.img_size[1])),
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
@@ -160,6 +177,17 @@ class VideoAnimator():
                 out = ffmpeg.output(in1['v'], in2['a'], path, loglevel="panic")
             out.run()
 
+    def preprocess_img(self, img):
+        src = self.fa.get_landmarks(img)[0][self.stablePntsIDs, :]
+        dst = self.mean_face[self.stablePntsIDs, :]
+        tform = tf.estimate_transform('similarity', src, dst)  # find the transformation matrix
+        warped = tf.warp(img, inverse_map=tform.inverse, output_shape=self.img_size)  # wrap the frame image
+        warped = warped * 255  # note output from wrap is double image (value range [0,1])
+        warped = warped.astype('uint8')
+        import scipy.misc
+
+        return warped
+
     def _cut_sequence_(self, seq, cutting_stride, pad_samples):
         pad_left = torch.zeros(pad_samples // 2, 1)
         pad_right = torch.zeros(pad_samples - pad_samples // 2, 1)
@@ -180,24 +208,34 @@ class VideoAnimator():
 
         return torch.stack(total_tensors)
 
-    def __call__(self, img, audio, fs=None):
+    def __call__(self, img, audio, fs=None, aligned=False):
         if isinstance(img, str):  # if we have a path then grab the image
-            frame = Image.open(img)
+            frame = np.array(Image.open(img))
         else:
             frame = img
 
-        if isinstance(audio, str):  # if we have a path then grab the image
-            speech, audio_rate = torchaudio.load(audio, channels_first=False)
-            if speech.size(1) != 1:
-                speech = speech[:, 0].view(-1, 1)
+        if not aligned:
+            frame = self.preprocess_img(frame)
+
+        if isinstance(audio, str):  # if we have a path then grab the audio clip
+            audio, fs = torchaudio.load(audio, channels_first=False)
+            if audio.size(1) != 1:
+                audio = audio[:, 0].view(-1, 1)
+
+            if fs != self.audio_rate:
+                seq_length = audio.shape[0]
+                speech = torch.from_numpy(signal.resample(audio, int(seq_length * self.audio_rate / fs))).float()
+                speech = speech.view(-1, 1)
         else:
             if fs is None:
                 raise AttributeError("Audio provided without specifying the rate. Specify rate or use audio file!")
-            seq_length = audio.shape[0]
-            max_value = np.iinfo(audio.dtype).max
-            speech = torch.from_numpy(
-                2 * signal.resample(audio, int(seq_length * self.audio_rate / fs)) / max_value).float()
-            speech = speech.view(-1, 1)
+        
+            if fs != self.audio_rate:
+                seq_length = audio.shape[0]
+                max_value = np.iinfo(audio.dtype).max
+                speech = torch.from_numpy(
+                    2 * signal.resample(audio, int(seq_length * self.audio_rate / fs)) / max_value).float()
+                speech = speech.view(-1, 1)
 
         frame = self.img_transform(frame).to(self.device)
 
