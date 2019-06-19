@@ -4,6 +4,9 @@ This library implements the end-to-end facial synthesis model described in this 
 
 ![speech-driven-animation](example.gif)
 
+## Prerequisites
+The models provided are checked out using git LFS. You can install git LFS by following these [instructions](https://help.github.com/en/articles/installing-git-large-file-storage).
+
 ## Installing
 
 To install the library do:
@@ -15,6 +18,22 @@ $ pip install .
 
 To create the animations you will need to instantiate the VideoAnimator class. Then you provide an image and audio clip (or the paths to the files) and a video will be produced.
 
+
+## Choosing the model
+The model has been trained on the GRID, TCD-TIMIT, CREMA-D and LRW datasets. The default model is GRID. To load another pretrained model simply instantiate the VideoAnimator with the following arguments:
+
+```
+import sda
+va = sda.VideoAnimator(gpu=0, model_path="crema")# Instantiate the aminator
+```
+
+The models that are currently uploaded are:
+- [x] grid
+- [x] timit
+- [x] crema
+- [ ] lrw
+
+
 ### Example with Image and Audio Paths
 ```
 import sda
@@ -22,7 +41,7 @@ va = sda.VideoAnimator(gpu=0)# Instantiate the aminator
 vid, aud = va("example/image.bmp", "example/audio.wav")
 ```
 
-### Example with Image and Audio Paths
+### Example with Numpy Arrays
 ```
 import sda
 import scipy.io.wavfile as wav
