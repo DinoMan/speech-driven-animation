@@ -224,7 +224,7 @@ class VideoAnimator():
 
             if fs != self.audio_rate:
                 seq_length = audio.shape[0]
-                speech = torch.from_numpy(signal.resample(audio, int(seq_length * self.audio_rate / fs))).float()
+                speech = torch.from_numpy(signal.resample(audio.cpu().detach().numpy(), int(seq_length * self.audio_rate / fs))).float()
                 speech = speech.view(-1, 1)
             else:
                 speech = audio.view(-1,1)
@@ -239,6 +239,7 @@ class VideoAnimator():
                     2 * signal.resample(audio, int(seq_length * self.audio_rate / fs)) / max_value).float()
                 speech = speech.view(-1, 1)
             else:
+                audio = torch.from_numpy(audio).float()
                 speech = audio.view(-1, 1)
 
         frame = self.img_transform(frame).to(self.device)
