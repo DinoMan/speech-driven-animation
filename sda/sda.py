@@ -231,15 +231,14 @@ class VideoAnimator():
         else:
             if fs is None:
                 raise AttributeError("Audio provided without specifying the rate. Specify rate or use audio file!")
-        
+            max_value = np.iinfo(audio.dtype).max 
             if fs != self.audio_rate:
                 seq_length = audio.shape[0]
-                max_value = np.iinfo(audio.dtype).max
                 speech = torch.from_numpy(
                     2 * signal.resample(audio, int(seq_length * self.audio_rate / fs)) / max_value).float()
                 speech = speech.view(-1, 1)
             else:
-                audio = torch.from_numpy(audio).float()
+                audio = torch.from_numpy(2 * audio / max_value).float()
                 speech = audio.view(-1, 1)
 
         frame = self.img_transform(frame).to(self.device)
