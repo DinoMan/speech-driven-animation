@@ -1,6 +1,5 @@
 from torchvision import transforms
 import torch
-import torchaudio
 from .encoder_image import Encoder
 from .img_generator import Generator
 from .rnn_audio import RNN
@@ -129,7 +128,6 @@ class VideoAnimator():
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
 
-        self.audio_transform = torchaudio.transforms.Scale()
 
         self.encoder = RNN(self.audio_feat_len, self.aud_enc_dim, self.rnn_gen_dim,
                            self.audio_rate, init_kernel=0.005, init_stride=0.001)
@@ -218,28 +216,19 @@ class VideoAnimator():
             frame = self.preprocess_img(frame)
 
         if isinstance(audio, str):  # if we have a path then grab the audio clip
-            audio, fs = torchaudio.load(audio, channels_first=False)
-            if audio.size(1) != 1:
-                audio = audio[:, 0].view(-1, 1)
+            fs, audio = wav.read("example/audio.wav")
 
-            if fs != self.audio_rate:
-                seq_length = audio.shape[0]
-                speech = torch.from_numpy(signal.resample(audio.cpu().detach().numpy(), int(seq_length * self.audio_rate / fs))).float()
-                speech = speech.view(-1, 1)
-            else:
-                speech = audio.view(-1,1)
+        if fs is None:
+            raise AttributeError("Audio provided without specifying the rate. Specify rate or use audio file!")
+        
+        max_value = np.iinfo(audio.dtype).max 
+        if fs != self.audio_rate:
+            seq_length = audio.shape[0]
+            speech = torch.from_numpy(signal.resample(audio, int(seq_length * self.audio_rate / fs)) / max_value).float()
+            speech = speech.view(-1, 1)
         else:
-            if fs is None:
-                raise AttributeError("Audio provided without specifying the rate. Specify rate or use audio file!")
-            max_value = np.iinfo(audio.dtype).max 
-            if fs != self.audio_rate:
-                seq_length = audio.shape[0]
-                speech = torch.from_numpy(
-                    2 * signal.resample(audio, int(seq_length * self.audio_rate / fs)) / max_value).float()
-                speech = speech.view(-1, 1)
-            else:
-                audio = torch.from_numpy(2 * audio / max_value).float()
-                speech = audio.view(-1, 1)
+            audio = torch.from_numpy(audio / max_value).float()
+            speech = audio.view(-1, 1)
 
         frame = self.img_transform(frame).to(self.device)
 
