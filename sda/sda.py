@@ -216,7 +216,7 @@ class VideoAnimator():
             frame = self.preprocess_img(frame)
 
         if isinstance(audio, str):  # if we have a path then grab the audio clip
-            fs, audio = wav.read("example/audio.wav")
+            fs, audio = wav.read(audio)
 
         if fs is None:
             raise AttributeError("Audio provided without specifying the rate. Specify rate or use audio file!")
