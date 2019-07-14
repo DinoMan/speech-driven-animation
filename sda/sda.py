@@ -153,7 +153,10 @@ class VideoAnimator():
         self.encoder_id.eval()
         self.generator.eval()
 
-    def save_video(self, video, audio, path, experimental_ffmpeg=False):
+    def save_video(self, video, audio, path, overwrite=True, experimental_ffmpeg=False):
+        if not os.path.isabs(path):
+            path = os.getcwd() + "/" + path;
+
         with tempdir() as dirpath:
             # Save the video file
             writer = sio.FFmpegWriter(dirpath + "/tmp.avi",
@@ -173,6 +176,9 @@ class VideoAnimator():
                 out = ffmpeg.output(in1['v'], in2['a'], path, strict='-2', loglevel="panic")
             else:
                 out = ffmpeg.output(in1['v'], in2['a'], path, loglevel="panic")
+            
+            if overwrite:
+                out = out.overwrite_output()
             out.run()
 
     def preprocess_img(self, img):
@@ -221,18 +227,21 @@ class VideoAnimator():
         if fs is None:
             raise AttributeError("Audio provided without specifying the rate. Specify rate or use audio file!")
         
-        max_value = np.iinfo(audio.dtype).max 
+        if audio.ndim>1 and audio.shape[1] > 1:
+            audio = audio[:,0]
+
+        max_value = np.iinfo(audio.dtype).max
         if fs != self.audio_rate:
             seq_length = audio.shape[0]
-            speech = torch.from_numpy(signal.resample(audio, int(seq_length * self.audio_rate / fs)) / max_value).float()
+            speech = torch.from_numpy(signal.resample(audio, int(seq_length * self.audio_rate / float(fs))) / float(max_value)).float()
             speech = speech.view(-1, 1)
         else:
-            audio = torch.from_numpy(audio / max_value).float()
+            audio = torch.from_numpy(audio / float(max_value)).float()
             speech = audio.view(-1, 1)
 
         frame = self.img_transform(frame).to(self.device)
 
-        cutting_stride = int(self.audio_rate / self.video_rate)
+        cutting_stride = int(self.audio_rate / float(self.video_rate))
         audio_seq_padding = self.audio_feat_samples - cutting_stride
 
         # Create new sequences of the audio windows
