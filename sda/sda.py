@@ -214,7 +214,9 @@ class VideoAnimator():
 
     def __call__(self, img, audio, fs=None, aligned=False):
         if isinstance(img, str):  # if we have a path then grab the image
-            frame = np.array(Image.open(img))
+            frm = Image.open(img)
+            frm.thumbnail((400,400))            
+            frame = np.array(frm)
         else:
             frame = img
 
