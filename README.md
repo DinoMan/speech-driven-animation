@@ -24,7 +24,7 @@ The model has been trained on the GRID, TCD-TIMIT, CREMA-D and LRW datasets. The
 
 ```
 import sda
-va = sda.VideoAnimator(gpu=0, model_path="crema")# Instantiate the aminator
+va = sda.VideoAnimator(gpu=0, model_path="crema")# Instantiate the animator
 ```
 
 The models that are currently uploaded are:
@@ -37,7 +37,7 @@ The models that are currently uploaded are:
 ### Example with Image and Audio Paths
 ```
 import sda
-va = sda.VideoAnimator(gpu=0)# Instantiate the aminator
+va = sda.VideoAnimator(gpu=0)# Instantiate the animator
 vid, aud = va("example/image.bmp", "example/audio.wav")
 ```
 
@@ -47,7 +47,7 @@ import sda
 import scipy.io.wavfile as wav
 from PIL import Image
 
-va = sda.VideoAnimator(gpu=0)# Instantiate the aminator
+va = sda.VideoAnimator(gpu=0)# Instantiate the animator
 fs, audio_clip = wav.read("example/audio.wav")
 still_frame = Image.open("example/image.bmp")
 vid, aud = va(frame, audio_clip, fs=fs)
