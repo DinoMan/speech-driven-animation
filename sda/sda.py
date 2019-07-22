@@ -122,7 +122,7 @@ class VideoAnimator():
         self.aud_enc_dim = model_dict['aud_enc_dim']
         self.aux_latent = model_dict['aux_latent']
         self.sequential_noise = model_dict['sequential_noise']
-        self.conversion_dict = {'s16': np.int16, 's32': np.int32, 'fltp': np.int16}
+        self.conversion_dict = {'s16': np.int16, 's32': np.int32}
 
         self.img_transform = transforms.Compose([
             transforms.ToPILImage(),
@@ -229,12 +229,17 @@ class VideoAnimator():
             frame = self.preprocess_img(frame)
 
         if isinstance(audio, str):  # if we have a path then grab the audio clip
-
             info = mediainfo(audio)
             fs = int(info['sample_rate'])
-            audio = np.array(
-                AudioSegment.from_file(audio, info['format_name']).set_channels(1).get_array_of_samples()).astype(
-                self.conversion_dict[info['sample_fmt']])
+            audio = np.array(AudioSegment.from_file(audio, info['format_name']).set_channels(1).get_array_of_samples())
+
+            if info['sample_fmt'] in self.conversion_dict:
+                audio = audio.astype(self.conversion_dict[info['sample_fmt']])
+            else:
+                if max(audio) > np.iinfo(np.int16).max:
+                    audio = audio.astype(np.int32)
+                else:
+                    audio = audio.astype(np.int16)
 
         if fs is None:
             raise AttributeError("Audio provided without specifying the rate. Specify rate or use audio file!")
