@@ -15,5 +15,6 @@ setup(name='sda',
           'torch',
           'face-alignment',
           'torchvision',
-      ],
+          'pydub',
+          ],
       zip_safe=False)
