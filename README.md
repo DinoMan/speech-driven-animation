@@ -6,6 +6,7 @@ This library implements the end-to-end facial synthesis model described in this 
 
 ## Downloading the models
 The models were hosted on git LFS. However the demand was so high that I reached the quota for free gitLFS storage. I have moved the models to GoogleDrive. Models can be found [here](https://drive.google.com/open?id=1pJdsnknLmMLvA8RQIAV3AQH8vU0FeK16).
+Place the model file(s) under sda/data/
 
 ## Installing
 
