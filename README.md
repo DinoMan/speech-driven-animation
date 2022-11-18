@@ -4,7 +4,7 @@ This library implements the end-to-end facial synthesis model described in this 
 
 ![speech-driven-animation](example.gif)
 
-## Downloading the models
+## Downloading the Models
 The models were hosted on git LFS. However the demand was so high that I reached the quota for free gitLFS storage. I have moved the models to GoogleDrive. Models can be found [here](https://drive.google.com/drive/folders/17Dc2keVoNSrlrOdLL3kXdM8wjb20zkbF?usp=sharing).
 Place the model file(s) under sda/data/
 
@@ -15,24 +15,24 @@ To install the library do:
 $ pip install .
 ```
 
-## Running the example
+## Running the Example
 
 To create the animations you will need to instantiate the VideoAnimator class. Then you provide an image and audio clip (or the paths to the files) and a video will be produced.
 
 
-## Choosing the model
+## Choosing the Model
 The model has been trained on the GRID, TCD-TIMIT, CREMA-D and LRW datasets. The default model is GRID. To load another pretrained model simply instantiate the VideoAnimator with the following arguments:
 
 ```
 import sda
-va = sda.VideoAnimator(gpu=0, model_path="crema")# Instantiate the animator
+va = sda.VideoAnimator(gpu=0, model_path="crema") # Instantiate the animator
 ```
 
 The models that are currently uploaded are:
-- [x] grid
-- [x] timit
-- [x] crema
-- [ ] lrw
+- [x] GRID
+- [x] TIMIT
+- [x] CREMA
+- [ ] LRW
 
 
 ### Example with Image and Audio Paths
@@ -48,18 +48,18 @@ import sda
 import scipy.io.wavfile as wav
 from PIL import Image
 
-va = sda.VideoAnimator(gpu=0)# Instantiate the animator
+va = sda.VideoAnimator(gpu=0) # Instantiate the animator
 fs, audio_clip = wav.read("example/audio.wav")
 still_frame = Image.open("example/image.bmp")
 vid, aud = va(frame, audio_clip, fs=fs)
 ```
 
-### Saving video with audio
+### Saving Video with Audio
 ```
 va.save_video(vid, aud, "generated.mp4")
 ```
 
-## Using the encodings
+## Using the Encodings
 The encoders for audio and video are made available so that they can be used to produce features for classification tasks.
 
 ### Audio Encoder
