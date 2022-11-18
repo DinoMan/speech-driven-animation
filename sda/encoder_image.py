@@ -33,12 +33,12 @@ class Encoder(nn.Module):
                 nn.Conv2d(num_input_channels, self.num_feature_maps, kernel_size, stride=stride, padding=padding // 2,
                           bias=False),
                 nn.BatchNorm2d(self.num_feature_maps),
-                nn.ReLU(True)))
+                nn.ReLU(inplace=True)))
         else:
             self.cl.append(nn.Sequential(
                 nn.Conv2d(num_input_channels, self.num_feature_maps, kernel_size, stride=stride, padding=padding // 2,
                           bias=False),
-                nn.ReLU(True)))
+                nn.ReLU(inplace=True)))
 
         self.channels = [self.num_feature_maps]
         for i in range(self.num_layers - 1):
@@ -49,12 +49,12 @@ class Encoder(nn.Module):
                               padding=padding // 2,
                               bias=False),
                     nn.BatchNorm2d(self.channels[-1] * 2),
-                    nn.ReLU(True)))
+                    nn.ReLU(inplace=True)))
             else:
                 self.cl.append(nn.Sequential(
                     nn.Conv2d(self.channels[-1], self.channels[-1] * 2, kernel_size, stride=stride,
                               padding=padding // 2, bias=False),
-                    nn.ReLU(True)))
+                    nn.ReLU(inplace=True)))
 
             self.channels.append(2 * self.channels[-1])
 
