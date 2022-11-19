@@ -62,8 +62,8 @@ va.save_video(vid, aud, "generated.mp4")
 ## Using the encodings
 The encoders for audio and video are made available so that they can be used to produce features for classification tasks.
 
-### Audio Encoder
-The Audio Encoder (which is made of Audio-Frame encoder and RNN) is provided along with a dictionary which has information such as the feature length (in seconds) required by the Audio Frame encoder and the overlap between audio frames.
+### Audio encoder
+The Audio encoder (which is made of Audio-frame encoder and RNN) is provided along with a dictionary which has information such as the feature length (in seconds) required by the Audio Frame encoder and the overlap between audio frames.
 ```
 import sda
 encoder, info = sda.get_audio_feature_extractor(gpu=0)
