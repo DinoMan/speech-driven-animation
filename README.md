@@ -2,6 +2,8 @@
 
 This library implements the end-to-end facial synthesis model described in this [paper](https://sites.google.com/view/facialsynthesis/home).
 
+This library is maintained by Konstantinos Vougioukas, Honglie Chen and Pingchuan Ma.
+
 ![speech-driven-animation](example.gif)
 
 ## Downloading the models
