@@ -156,7 +156,7 @@ class VideoAnimator():
 
     def save_video(self, video, audio, path, overwrite=True, experimental_ffmpeg=False, scale=None):
         if not os.path.isabs(path):
-            path = os.path.join(os.getcwd() path)
+            path = os.path.join(os.getcwd(), path)
 
         with tempdir() as dirpath:
             # Save the video file
