@@ -44,11 +44,11 @@ def tempdir():
 
 def get_audio_feature_extractor(model_path="grid", gpu=-1):
     if model_path == "grid":
-        model_path = os.path.split(__file__)[0] + "/data/grid.dat"
+        model_path = os.path.join(os.path.split(__file__)[0], "data", "grid.dat")
     elif model_path == "timit":
-        model_path = os.path.split(__file__)[0] + "/data/timit.dat"
+        model_path = os.path.join(os.path.split(__file__)[0], "data", "timit.dat")
     elif model_path == "crema":
-        model_path = os.path.split(__file__)[0] + "/data/crema.dat"
+        model_path = os.path.join(os.path.split(__file__)[0], "data", "crema.dat")
 
     if gpu < 0:
         device = torch.device("cpu")
@@ -94,11 +94,11 @@ class VideoAnimator():
     def __init__(self, model_path="grid", gpu=-1):
 
         if model_path == "grid":
-            model_path = os.path.split(__file__)[0] + "/data/grid.dat"
+            model_path = os.path.join(os.path.split(__file__)[0], "data", "grid.dat")
         elif model_path == "timit":
-            model_path = os.path.split(__file__)[0] + "/data/timit.dat"
+            model_path = os.path.join(os.path.split(__file__)[0], "data", "timit.dat")
         elif model_path == "crema":
-            model_path = os.path.split(__file__)[0] + "/data/crema.dat"
+            model_path = os.path.join(os.path.split(__file__)[0], "data", "crema.dat")
 
         if gpu < 0:
             self.device = torch.device("cpu")
@@ -156,11 +156,11 @@ class VideoAnimator():
 
     def save_video(self, video, audio, path, overwrite=True, experimental_ffmpeg=False, scale=None):
         if not os.path.isabs(path):
-            path = os.getcwd() + "/" + path;
+            path = os.path.join(os.getcwd(), path)
 
         with tempdir() as dirpath:
             # Save the video file
-            writer = sio.FFmpegWriter(dirpath + "/tmp.avi",
+            writer = sio.FFmpegWriter(os.path.join(dirpath, "tmp.avi"),
                                       inputdict={'-r': str(self.video_rate) + "/1", },
                                       outputdict={'-r': str(self.video_rate) + "/1", }
                                       )
@@ -174,10 +174,10 @@ class VideoAnimator():
             writer.close()
 
             # Save the audio file
-            wav.write(dirpath + "/tmp.wav", self.audio_rate, audio)
+            wav.write(os.path.join(dirpath, "tmp.wav"), self.audio_rate, audio)
 
-            in1 = ffmpeg.input(dirpath + "/tmp.avi")
-            in2 = ffmpeg.input(dirpath + "/tmp.wav")
+            in1 = ffmpeg.input(os.path.join(dirpath, "tmp.avi"))
+            in2 = ffmpeg.input(os.path.join(dirpath, "tmp.wav"))
             if experimental_ffmpeg:
                 out = ffmpeg.output(in1['v'], in2['a'], path, strict='-2', loglevel="panic")
             else:

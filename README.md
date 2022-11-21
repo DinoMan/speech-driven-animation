@@ -6,7 +6,7 @@ This library implements the end-to-end facial synthesis model described in this 
 
 ## Downloading the models
 The models were hosted on git LFS. However the demand was so high that I reached the quota for free gitLFS storage. I have moved the models to GoogleDrive. Models can be found [here](https://drive.google.com/drive/folders/17Dc2keVoNSrlrOdLL3kXdM8wjb20zkbF?usp=sharing).
-Place the model file(s) under sda/data/
+Place the model file(s) under *`sda/data/`*
 
 ## Installing
 
@@ -25,30 +25,30 @@ The model has been trained on the GRID, TCD-TIMIT, CREMA-D and LRW datasets. The
 
 ```
 import sda
-va = sda.VideoAnimator(gpu=0, model_path="crema")# Instantiate the animator
+va = sda.VideoAnimator(gpu=0, model_path="crema")  # Instantiate the animator
 ```
 
 The models that are currently uploaded are:
-- [x] grid
-- [x] timit
-- [x] crema
-- [ ] lrw
+- [x] GRID
+- [x] TIMIT
+- [x] CREMA
+- [ ] LRW
 
 
-### Example with Image and Audio Paths
+### Example with image and audio paths
 ```
 import sda
-va = sda.VideoAnimator(gpu=0)# Instantiate the animator
+va = sda.VideoAnimator(gpu=0)  # Instantiate the animator
 vid, aud = va("example/image.bmp", "example/audio.wav")
 ```
 
-### Example with Numpy Arrays
+### Example with numpy arrays
 ```
 import sda
 import scipy.io.wavfile as wav
 from PIL import Image
 
-va = sda.VideoAnimator(gpu=0)# Instantiate the animator
+va = sda.VideoAnimator(gpu=0) # Instantiate the animator
 fs, audio_clip = wav.read("example/audio.wav")
 still_frame = Image.open("example/image.bmp")
 vid, aud = va(frame, audio_clip, fs=fs)
@@ -62,9 +62,23 @@ va.save_video(vid, aud, "generated.mp4")
 ## Using the encodings
 The encoders for audio and video are made available so that they can be used to produce features for classification tasks.
 
-### Audio Encoder
-The Audio Encoder (which is made of Audio-Frame encoder and RNN) is provided along with a dictionary which has information such as the feature length (in seconds) required by the Audio Frame encoder and the overlap between audio frames.
+### Audio encoder
+The Audio encoder (which is made of Audio-frame encoder and RNN) is provided along with a dictionary which has information such as the feature length (in seconds) required by the Audio Frame encoder and the overlap between audio frames.
 ```
 import sda
 encoder, info = sda.get_audio_feature_extractor(gpu=0)
+```
+
+## Citation
+
+If you find this code useful in your research, please consider to cite the following papers:
+
+```bibtex
+@inproceedings{vougioukas2019end,
+  title={End-to-End Speech-Driven Realistic Facial Animation with Temporal GANs.},
+  author={Vougioukas, Konstantinos and Petridis, Stavros and Pantic, Maja},
+  booktitle={CVPR Workshops},
+  pages={37--40},
+  year={2019}
+}
 ```

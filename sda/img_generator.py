@@ -13,9 +13,9 @@ class Deconv(nn.Module):
                                       bias=False)
 
         if batch_norm:
-            self.activation = nn.Sequential(nn.BatchNorm2d(out_channels), nn.ReLU(True))
+            self.activation = nn.Sequential(nn.BatchNorm2d(out_channels), nn.ReLU(inplace=True))
         else:
-            self.activation = nn.ReLU(True)
+            self.activation = nn.ReLU(inplace=True)
 
         self.required_channels = out_channels
         self.out_size_required = tuple(x * stride for x in in_size)
@@ -36,11 +36,11 @@ class UnetBlock(nn.Module):
         self.dcl2 = nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride=stride,
                                        padding=padding // 2, bias=False)
         if batch_norm:
-            self.activation1 = nn.Sequential(nn.BatchNorm2d(in_channels), nn.ReLU(True))
-            self.activation2 = nn.Sequential(nn.BatchNorm2d(out_channels), nn.ReLU(True))
+            self.activation1 = nn.Sequential(nn.BatchNorm2d(in_channels), nn.ReLU(inplace=True))
+            self.activation2 = nn.Sequential(nn.BatchNorm2d(out_channels), nn.ReLU(inplace=True))
         else:
-            self.activation1 = nn.ReLU(True)
-            self.activation2 = nn.ReLU(True)
+            self.activation1 = nn.ReLU(inplace=True)
+            self.activation2 = nn.ReLU(inplace=True)
 
         self.required_channels = out_channels
         self.out_size_required = tuple(x * stride for x in in_size)
@@ -94,7 +94,7 @@ class Generator(nn.Module):
                 nn.ConvTranspose2d(self.aux_size, num_gen_channels, (self.init_size[0] // 2, self.init_size[1]),
                                    bias=False),
                 nn.BatchNorm2d(num_gen_channels),
-                nn.ReLU(True),
+                nn.ReLU(inplace=True),
                 nn.ConstantPad2d((0, 0, 0, self.init_size[0] // 2), 0))
         else:
             self.total_latent_size += self.aux_size
@@ -105,12 +105,12 @@ class Generator(nn.Module):
                 nn.Sequential(
                     nn.ConvTranspose2d(self.total_latent_size, num_gen_channels, self.init_size, bias=False),
                     nn.BatchNorm2d(num_gen_channels),
-                    nn.ReLU(True)))
+                    nn.ReLU(inplace=True)))
         else:
             self.dcl.append(
                 nn.Sequential(
                     nn.ConvTranspose2d(self.total_latent_size, num_gen_channels, self.init_size, bias=False),
-                    nn.ReLU(True)))
+                    nn.ReLU(inplace=True)))
 
         num_input_channels = self.num_gen_channels
         in_size = self.init_size
