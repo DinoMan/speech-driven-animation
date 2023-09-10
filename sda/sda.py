@@ -103,11 +103,11 @@ class VideoAnimator():
         if gpu < 0:
             self.device = torch.device("cpu")
             model_dict = torch.load(model_path, map_location=lambda storage, loc: storage)
-            self.fa = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D, device="cpu", flip_input=False)
+            self.fa = face_alignment.FaceAlignment(face_alignment.LandmarksType.TWO_D, device="cpu", flip_input=False)
         else:
             self.device = torch.device("cuda:" + str(gpu))
             model_dict = torch.load(model_path, map_location=lambda storage, loc: storage.cuda(gpu))
-            self.fa = face_alignment.FaceAlignment(face_alignment.LandmarksType._2D, device="cuda:" + str(gpu),
+            self.fa = face_alignment.FaceAlignment(face_alignment.LandmarksType.TWO_D, device="cuda:" + str(gpu),
                                                    flip_input=False)
 
         self.stablePntsIDs = [33, 36, 39, 42, 45]
